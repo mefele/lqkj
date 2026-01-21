@@ -15,7 +15,7 @@ proxy-providers:
   Airport_01:
     <<: *PProviders
     proxy: "故障转移"
-    url: "https://joy.svip08.dpdns.org/joy/sub"
+    url: "sub"
     override:
       additional-prefix: '[N1]'
       skip-cert-verify: true
@@ -23,7 +23,7 @@ proxy-providers:
   Airport_02:
     <<: *PProviders
     proxy: "故障转移"
-    url: "https://cook.vipik.dpdns.org/sub?token=bd2813a87402b2644ffc37c23ff6c473"
+    url: "3ff6c473"
     override:
       additional-prefix: '[N2]'
       skip-cert-verify: true
