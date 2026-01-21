@@ -1,0 +1,169 @@
+# 锚点区
+Proxy_first: &Proxy_first {type: select, proxies: [节点选择, 香港节点, 新加坡节点, 日本节点, 台湾节点, 美国节点, 欧洲节点, 全部节点, 全球直连]}
+
+Direct_first: &Direct_first {type: select, proxies: [全球直连, 节点选择, 香港节点, 新加坡节点, 日本节点, 台湾节点, 美国节点, 欧洲节点, 全部节点]}
+
+Include_all: &Include_all {type: select, proxies: [节点选择, 香港节点, 新加坡节点, 日本节点, 台湾节点, 美国节点, 欧洲节点, 全部节点, 全球直连], include-all: true, exclude-filter: "(?i)(🟢 直连)"}
+
+Urltest_Base: &Urltest_Base {type: url-test, include-all: true, tolerance: 20, interval: 300, max-failed-times: 1, hidden: true}
+
+PProviders: &PProviders {type: http, interval: 86400, health-check: {enable: true, url: 'https://www.gstatic.com/generate_204', interval: 300}, filter: '^(?!.*(拒绝|直连|群|邀请|返利|循环|官网|客服|网站|网址|获取|订阅|流量|到期|机场|下次|版本|官址|备用|过期|已用|联系|邮箱|工单|贩卖|通知|倒卖|防止|国内|地址|频道|无法|说明|提示|特别|访问|支持|教程|关注|更新|作者|加入|USE|USED|TOTAL|EXPIRE|EMAIL|Panel|Channel|Author|traffic))'}
+
+##############################################
+# 机场订阅
+proxy-providers:
+  Airport_01:
+    <<: *PProviders
+    proxy: "故障转移"
+    url: "sub"
+    override:
+      additional-prefix: '[N1]'
+      skip-cert-verify: true
+      udp: true
+  Airport_02:
+    <<: *PProviders
+    proxy: "故障转移"
+    url: "23ff6c473"
+    override:
+      additional-prefix: '[N2]'
+      skip-cert-verify: true
+      udp: true
+##############################################
+
+global-ua: clash.meta
+mixed-port: 7890
+ipv6: true
+allow-lan: true
+unified-delay: true
+tcp-concurrent: true
+
+geodata-mode: false
+geodata-loader: standard
+geo-auto-update: true
+geo-update-interval: 48
+geox-url:
+  geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.metadb"
+  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  asn: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb"
+
+external-controller: 0.0.0.0:9090
+external-ui: ui
+external-ui-url: "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+
+find-process-mode: strict
+global-client-fingerprint: random
+
+profile:
+  store-selected: true
+  store-fake-ip: false
+
+sniffer:
+  enable: true
+  sniff:
+    HTTP: {ports: [80, 8080-8880], override-destination: true}
+    TLS: {ports: [443, 8443]}
+    QUIC: {ports: [443, 8443]}
+
+tun:
+  enable: true
+  stack: gvisor
+  mtu: 9000
+  dns-hijack: ["any:53"]
+  auto-route: true
+  auto-detect-interface: true
+
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.1/8
+  fake-ip-filter:
+    - "rule-set:fakeip_filter_domain"
+    - "geosite:cn,category-games@cn,private"
+  default-nameserver: [119.29.29.29, 180.184.1.1]
+  nameserver:
+    - https://dns.google/dns-query
+    - https://dns.cloudflare.com/dns-query
+
+proxies: 
+  - name: "🟢 直连"
+    type: direct
+    udp: true
+
+# 策略组
+proxy-groups:
+  - {name: 节点选择, type: select, proxies: [香港节点, 新加坡节点, 日本节点, 台湾节点, 美国节点, 欧洲节点, 全部节点, 故障转移], icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/select.png"}
+  - {name: YouTube, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/youtube.png"}
+  - {name: Google, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/google.png"}
+  - {name: AI, <<: *Include_all, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/ai.png"}
+  - {name: GitHub, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/github.png"}
+  - {name: NETFLIX, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/netflix.png"}
+  - {name: DisneyPlus, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/disney.png"}
+  - {name: HBO, <<: *Proxy_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/hbo.png"}
+  - {name: Emby, type: select, <<: *Include_all, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/emby.png"}
+  - {name: 哔哩哔哩, type: select, <<: *Direct_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/bilibili.png"}
+  - {name: 国内媒体, type: select, <<: *Direct_first, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/Chinese_media.png"}
+  - {name: 全球直连, type: select, proxies: [🟢 直连, 🔗 代理, 全部节点], icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/direct.png"}
+  - {name: 隐私拦截, type: select, proxies: [🚫 拒绝, ⚪ 丢弃 ,🟢 直连, 🔗 代理], icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/block.png"}
+  - {name: Final, type: select, <<: *Include_all, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/final.png"}
+  - {name: 香港节点, type: select, proxies: [香港自动, 香港均衡], include-all: true, filter: "(?i)港|hk|hongkong|🇭🇰", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/Hongkong.png"}
+  - {name: 新加坡节点, type: select, proxies: [新加坡自动, 新加坡均衡], include-all: true, filter: "(?i)新|🇸🇬|SG|singapore", exclude-filter: "(?i)新西兰", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/Singapore.png"}
+  - {name: 日本节点, type: select, proxies: [日本自动, 日本均衡], include-all: true, filter: "(?i)日本|🇯🇵|JP|Japan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/Japan.png"}
+  - {name: 台湾节点, type: select, proxies: [台湾自动, 台湾均衡], include-all: true, filter: "(?i)台|🇹🇼|TW|Taiwan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/Taiwan_China.png"}
+  - {name: 美国节点, type: select, proxies: [美国自动, 美国均衡], include-all: true, filter: "(?i)美|🇺🇲|US|America|United States", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/America.png"}
+  - {name: 欧洲节点, type: select, include-all: true, filter: "(?i)🇦🇱|🇦🇩|🇦🇹|🇧🇾|🇧🇪|🇧🇦|🇧🇬|🇭🇷|🇨🇾|🇨🇿|🇩🇰|🇪🇪|🇫🇮|🇫🇷|🇩🇪|🇬🇷|🇭🇺|🇮🇸|🇮🇪|🇮🇹|🇽🇰|🇱🇻|🇱🇮|🇱🇹|🇱🇺|🇲🇹|🇲🇩|🇲🇨|🇲🇪|🇳🇱|🇲🇰|🇳🇴|🇵🇱|🇵🇹|🇷🇴|🇷🇺|🇸🇲|🇷🇸|🇸🇰|🇸🇮|🇪🇸|🇸🇪|🇨🇭|🇹🇷|🇺🇦|🇬🇧|🇻🇦", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/European.png"}
+  - {name: 全部节点, type: url-test, include-all: true, tolerance: 20, interval: 300, exclude-filter: "(?i)(🟢 直连)", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/all.png"}
+  - {name: 香港自动, <<: *Urltest_Base, filter: "(?i)港|hk|hongkong|🇭🇰", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/automation2.png"}
+  - {name: 新加坡自动, <<: *Urltest_Base, filter: "(?i)新|🇸🇬|SG|Singapore", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/automation2.png"}
+  - {name: 日本自动, <<: *Urltest_Base, filter: "(?i)日本|🇯🇵|JP|Japan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/automation2.png"}
+  - {name: 台湾自动, <<: *Urltest_Base, filter: "(?i)台|🇹🇼|TW|Taiwan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/automation2.png"}
+  - {name: 美国自动, <<: *Urltest_Base, filter: "(?i)美|🇺🇲|US|America|United States", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/automation2.png"}
+  - {name: 香港均衡, type: load-balance, include-all: true, strategy: consistent-hashing, hidden: true, filter: "(?i)港|hk|hongkong|🇭🇰", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/load-balance.png"}
+  - {name: 新加坡均衡, type: load-balance, include-all: true, strategy: consistent-hashing, hidden: true, filter: "(?i)新|🇸🇬|SG|Singapore", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/load-balance.png"}
+  - {name: 日本均衡, type: load-balance, include-all: true, strategy: consistent-hashing, hidden: true, filter: "(?i)日本|🇯🇵|JP|Japan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/load-balance.png"}
+  - {name: 台湾均衡, type: load-balance, include-all: true, strategy: consistent-hashing, hidden: true, filter: "(?i)台|🇹🇼|TW|Taiwan", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/load-balance.png"}
+  - {name: 美国均衡, type: load-balance, include-all: true, strategy: consistent-hashing, hidden: true, filter: "(?i)美|🇺🇲|US|America|United States", icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/load-balance.png"}
+  - {name: 故障转移, type: fallback, include-all: true, interval: 300, icon: "https://pub-8feead0908f649a8b94397f152fb9cba.r2.dev/fallback.png"}
+  - {name: 🔗 代理, type: select, hidden: true, proxies: [节点选择]}
+  - {name: 🚫 拒绝, type: select, hidden: true, proxies: [REJECT]}
+  - {name: ⚪ 丢弃, type: select, hidden: true, proxies: [REJECT-DROP]}
+
+rules: 
+  - GEOSITE,category-ads-all,隐私拦截
+  - GEOSITE,private,全球直连
+  - GEOIP,private,全球直连,no-resolve
+  - GEOSITE,category-games@cn,全球直连
+  - GEOSITE,category-public-tracker,全球直连
+  - GEOSITE,openai,AI
+  - GEOSITE,category-ai-!cn,AI
+  - RULE-SET,ai_domain,AI
+  - GEOSITE,youtube,YouTube
+  - GEOSITE,google,Google
+  - GEOIP,google,Google,no-resolve
+  - GEOSITE,github,GitHub
+  - GEOSITE,netflix,NETFLIX
+  - GEOSITE,disney,DisneyPlus
+  - GEOSITE,hbo,HBO
+  - RULE-SET,emby_domain,Emby
+  - GEOSITE,bilibili,哔哩哔哩
+  - RULE-SET,bilibili_ip,哔哩哔哩,no-resolve
+  - GEOSITE,category-media-cn,国内媒体
+  - GEOIP,twitter,节点选择,no-resolve
+  - GEOIP,ai,AI,no-resolve
+  - GEOSITE,gfw,节点选择
+  - GEOSITE,geolocation-!cn,节点选择
+  - GEOSITE,cn,全球直连
+  - GEOIP,cn,全球直连,no-resolve
+  - MATCH,Final
+
+rule-anchor:
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: mrs}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: mrs}
+
+rule-providers: 
+  emby_domain: { <<: *domain, url: "https://raw.githubusercontent.com/Lanlan13-14/Rules/refs/heads/main/rules/Domain/emby.mrs" }
+  ai_domain: { <<: *domain, url: "https://raw.githubusercontent.com/Lanlan13-14/Rules/refs/heads/main/rules/Domain/ai.mrs" }
+  bilibili_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo-lite/geoip/bilibili.mrs" }
+  fakeip_filter_domain: { <<: *domain, url: "https://raw.githubusercontent.com/Lanlan13-14/Rules/refs/heads/main/rules/Domain/fakeip-filter.mrs" }
